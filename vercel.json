@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/api/wishes",
+      "destination": "https://site-2c2bc52dec094cc89b9db9f4ea2dd795.freebuff.page/api/wishes"
+    }
+  ]
+}
