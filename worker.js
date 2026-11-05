@@ -74,7 +74,7 @@ async function addWish(request, env) {
 
   const name = clean(body.name, 40);
   const text = clean(body.text, 240);
-  if (name.length < 2) return json({ ok: false, error: 'اكتبوا الاسم أولاً.' }, 400);
+
   if (text.length < 2) return json({ ok: false, error: 'اكتبوا تهنئة قصيرة (حرفين على الأقل).' }, 400);
 
   await ensureSchema(env);

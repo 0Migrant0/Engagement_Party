@@ -87,7 +87,7 @@ h3{margin:0;font-size:clamp(28px,7vw,40px);font-weight:400;color:var(--gold)}
 .sign{font-size:clamp(26px,7vw,36px);color:var(--gold);margin:8px 0 0}
 
 /* wish wall */
-#wish{padding-top:12vh;padding-bottom:14vh}
+#wish{min-height:0;justify-content:flex-start;padding:24px 20px 12vh}
 #wish h3{margin:0;font-weight:400;font-size:clamp(30px,7.6vw,44px);color:var(--gold);text-shadow:0 2px 16px rgba(255,255,255,.9)}
 .wish-sub{margin:-4px 0 2px;max-width:26em;font-size:15px;line-height:1.8;color:#8a6b74}
 .wish-card{width:min(100%,520px);display:flex;flex-direction:column;gap:6px;text-align:right;padding:20px;border-radius:24px;background:linear-gradient(160deg,rgba(255,255,255,.88),rgba(255,238,244,.72));border:1px solid rgba(207,79,124,.16);box-shadow:0 22px 46px -26px rgba(154,115,82,.55),0 1px 0 rgba(255,255,255,.8) inset;backdrop-filter:blur(6px)}
@@ -288,8 +288,6 @@ main{position:relative;z-index:2}
   <h3 class="rd">كلمات أحبابنا</h3>
   <p class="wish-sub">اتركوا تهنئة تبقى معهما… وتقرأها كل القلوب التي تفتح هذه الدعوة</p>
   <form class="wish-card" id="wf" novalidate>
-    <label for="wn">اسمكم</label>
-    <input id="wn" name="name" type="text" maxlength="40" placeholder="مثال: أحمد وسارة" autocomplete="name">
     <label for="wt">تهنئتكم</label>
     <textarea id="wt" name="text" rows="3" maxlength="240" placeholder="بكل الحب… مبارك لكما، ودام الفرح في بيتكما"></textarea>
     <div class="wf-row">
@@ -300,7 +298,6 @@ main{position:relative;z-index:2}
   </form>
   <div class="wish-meta" id="wcnt">…</div>
   <div class="wishes" id="wl"></div>
-  <p class="wish-note" id="wnote" hidden>تهاني الضيوف تُجمع على خادم الدعوة… تظهر هنا عندما تُفتح الصفحة من رابطها المشترك.</p>
 </section>
 </main>
 
@@ -456,10 +453,10 @@ ab.addEventListener('click',function(){if(going){stopA();return}var max=root.scr
 ['wheel','touchstart','keydown'].forEach(function(ev){addEventListener(ev,function(e){if(e.target&&e.target.closest&&e.target.closest('#auto'))return;stopA()},{passive:true})});
 
 /* wish wall */
-var wf=document.getElementById('wf'),wn=document.getElementById('wn'),wt=document.getElementById('wt'),wm=document.getElementById('wm'),wl=document.getElementById('wl'),wcnt=document.getElementById('wcnt'),wc=document.getElementById('wc'),ws=document.getElementById('ws'),wnote=document.getElementById('wnote'),wsec=document.getElementById('wish');
+var wf=document.getElementById('wf'),wt=document.getElementById('wt'),wm=document.getElementById('wm'),wl=document.getElementById('wl'),wcnt=document.getElementById('wcnt'),wc=document.getElementById('wc'),ws=document.getElementById('ws'),wsec=document.getElementById('wish');
 var wtotal=-1;
 function wmsg(t,bad){wm.textContent=t;wm.classList.toggle('on',!!t);wm.classList.toggle('bad',!!bad)}
-function wfail(on){wnote.hidden=!on;ws.disabled=on;wf.classList.toggle('off',on)}
+function wfail(on){ws.disabled=on;wf.classList.toggle('off',on)}
 function ago(ts){
   var s=Math.max(0,Math.round((Date.now()-ts)/1000));
   if(s<60)return 'الآن';
@@ -471,12 +468,12 @@ function ago(ts){
 function wcount(n){return n===1?'تهنئة واحدة':n===2?'تهنئتان':(n<=10?n+' تهانٍ':n+' تهنئة')}
 function wcard(w,fresh){
   var d=document.createElement('div');d.className='wish'+(fresh?' fresh':'');
-  var av=document.createElement('div');av.className='av';av.setAttribute('aria-hidden','true');av.textContent=(w.name||'♥').trim().charAt(0);
+  var av=document.createElement('div');av.className='av';av.setAttribute('aria-hidden','true');av.textContent=(w.name||'').trim()?(w.name||'').trim().charAt(0):'♥';
   var box=document.createElement('div');box.className='who';
-  var b=document.createElement('b');b.textContent=w.name;
   var p=document.createElement('p');p.textContent=w.text;
   var t=document.createElement('time');t.dateTime=new Date(w.ts).toISOString();t.textContent=ago(w.ts);
-  box.appendChild(b);box.appendChild(p);box.appendChild(t);
+  if((w.name||'').trim()){var b=document.createElement('b');b.textContent=w.name;box.appendChild(b)}
+  box.appendChild(p);box.appendChild(t);
   d.appendChild(av);d.appendChild(box);return d
 }
 function wrender(list,total){
@@ -510,11 +507,10 @@ function wload(){
 wt.addEventListener('input',function(){wc.textContent=wt.value.length+' / 240'});
 wf.addEventListener('submit',function(e){
   e.preventDefault();if(ws.disabled)return;
-  var name=wn.value.replace(/\s+/g,' ').trim(),text=wt.value.trim();
-  if(name.length<2){wmsg('اكتبوا اسمكم أولاً…',1);wn.focus();return}
+  var text=wt.value.trim();
   if(text.length<2){wmsg('اكتبوا تهنئة قصيرة من قلبكم…',1);wt.focus();return}
   ws.disabled=true;wmsg('جارٍ الإرسال…',0);
-  wfetch({method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({name:name,text:text})})
+  wfetch({method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({text:text})})
   .then(function(r){return r.json().then(function(d){return {st:r.status,d:d}}).catch(function(){return {st:r.status,d:{}}})})
   .then(function(r){
     if(r.st!==200||!r.d.wish){wmsg((r.d&&r.d.error)||'تعذّر الإرسال… حاولوا مرة أخرى.',1);ws.disabled=false;return}
